@@ -81,6 +81,7 @@ int main()
             out << i.average_score << std::endl;
         }
     }
+    out.close();
     return 0;
 }
 
