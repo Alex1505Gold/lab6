@@ -1,0 +1,10 @@
+Ivanov Ivan Ivanovich
+Math 3 Inf 4 Physics 3 PE 4
+Semenov Semen Semenovich
+Math 5 Inf 4 Physics 5 PE 5
+Goldberg Jonathon Aronovich
+Math 5 Inf 4 Physics 5 PE 5
+Rothenstein Ovadiah Michailovich
+Math 4 Inf 4 Physics 3 PE 3
+Wiezman Sampson Fedorovich
+Math 4 Inf 4 Physics 5 PE 5
