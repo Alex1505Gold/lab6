@@ -7,14 +7,14 @@
 struct Subject
 {
     std::string name_of_sub;
-    unsigned short int score;
+    unsigned short int score = 0;
 };
 
 struct Student
 {
     std::string name;
     Subject subs[4];
-    double average_score;
+    double average_score = 0.0;
 };
 
 
