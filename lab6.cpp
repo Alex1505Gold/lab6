@@ -25,6 +25,7 @@ void sort_s(std::vector<Student>& arr, int n)
         for (int j = i + 1; j < n; j++) {
             const char* d1 = arr[i].name.c_str();
             const char* d2 = arr[j].name.c_str();
+            //д1 и д2 нужны, тк фунция не работала с ссылками на строки
             if (strcmp(d1, d2) > 0)
             {
                 tmp = arr[i];
@@ -34,7 +35,12 @@ void sort_s(std::vector<Student>& arr, int n)
         }
 }
 
-
+std::ofstream& operator <<(std::ofstream& out, Student& i)
+{
+    out << i.name << " ";
+    out << i.average_score << std::endl;
+    return out;
+}
 
 int main()
 {
@@ -75,13 +81,21 @@ int main()
     std::ofstream out("lab6_result.txt");
     out << "Count of students with high average score is " << count_of_good_studs << std::endl;
     out << "The list of theese students:" << std::endl;
-    for (Student i: students) {
+    for (Student i : students) {
         if (i.average_score >= 4.0) {
-            out << i.name << " ";
-            out << i.average_score << std::endl;
+            out << i;
         }
     }
     out.close();
+    std::ofstream out_bin("lab6_res_bin.txt", std::ios::binary);
+    out_bin << "Count of students with high average score is " << count_of_good_studs << std::endl;
+    out_bin << "The list of theese students:" << std::endl;
+    for (Student i : students) {
+        if (i.average_score >= 4.0) {
+            out_bin << i;
+        }
+    }
+    out_bin.close();
     return 0;
 }
 
