@@ -1,5 +1,6 @@
-Count of students with high average score is 3
-The list of theese students:
+Data base:
 Goldberg Jonathon Aronovich 4.75
+Ivanov Ivan Ivanovich 3.5
+Rothenstein Ovadiah Michailovich 3.5
 Semenov Semen Semenovich 4.75
 Wiezman Sampson Fedorovich 4.5
