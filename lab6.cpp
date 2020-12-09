@@ -35,7 +35,18 @@ void sort_s(std::vector<Student>& arr, int n)
         }
 }
 
-std::ofstream& operator <<(std::ofstream& out, Student& i)
+std::ofstream& operator <<(std::ofstream& out, std::vector<Student>& v)
+{
+    out << "Data base:" << std::endl;
+    for (Student i : v) 
+    {
+        out << i.name << " ";
+        out << i.average_score << std::endl;
+    }
+    return out;
+}
+
+std::ostream& operator <<(std::ostream& out, Student& i)
 {
     out << i.name << " ";
     out << i.average_score << std::endl;
@@ -79,21 +90,21 @@ int main()
     }
 
     std::ofstream out("lab6_result.txt");
-    out << "Count of students with high average score is " << count_of_good_studs << std::endl;
-    out << "The list of theese students:" << std::endl;
+    std::cout << "Count of students with high average score is " << count_of_good_studs << std::endl;
+    std::cout << "The list of theese students:" << std::endl;
     for (Student i : students) {
         if (i.average_score >= 4.0) {
-            out << i;
+            std::cout << i;
         }
     }
+    out << students;
     out.close();
-    std::ofstream out_bin("lab6_res_bin.txt", std::ios::binary);
-    out_bin << "Count of students with high average score is " << count_of_good_studs << std::endl;
-    out_bin << "The list of theese students:" << std::endl;
-    for (Student i : students) {
-        if (i.average_score >= 4.0) {
-            out_bin << i;
-        }
+    std::ofstream out_bin("lab6_res_bin.bin", std::ios::binary);
+    out_bin << "Data base:" << std::endl;
+    for (Student i : students)
+    {
+        out_bin << i.name << " ";
+        out_bin << i.average_score << std::endl;
     }
     out_bin.close();
     return 0;
