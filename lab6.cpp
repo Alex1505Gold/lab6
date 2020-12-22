@@ -17,6 +17,12 @@ struct Student
     double average_score = 0.0;
 };
 
+std::ostream& operator <<(std::ostream& out, Student& i)
+{
+    out << i.name << " ";
+    out << i.average_score << std::endl;
+    return out;
+}
 
 void sort_s(std::vector<Student>& arr, int n)
 {
@@ -35,10 +41,56 @@ void sort_s(std::vector<Student>& arr, int n)
         }
 }
 
-std::ofstream& operator <<(std::ofstream& out, std::vector<Student>& v)
+std::istream& operator >>(std::istream& in, Student& i)
+{    
+    std::string cur_stud_name;
+    std::string cur_sub_name;
+    std::getline(in, cur_stud_name);
+    i.name = cur_stud_name;
+    unsigned short int cur_score;
+    for (int j = 0; j < 4; ++j) {
+        in >> cur_sub_name >> cur_score;
+        i.subs[j].name_of_sub = cur_sub_name;
+        i.subs[j].score = cur_score;
+    }
+    in.ignore(10, '\n');
+    return in;
+}
+
+void read_db(std::istream& in, std::vector<Student>& v)
+{
+    Student cur_stud;
+    for (int i = 0; i < 5; ++i)
+    {
+        in >> cur_stud;
+        v.push_back(cur_stud);
+    }
+}
+
+void read_db_bin(std::istream& in, std::vector<Student>& v)
+{
+    std::string cur_stud_name;
+    std::string cur_sub_name;
+    unsigned short int cur_score;
+    std::getline(in, cur_stud_name);
+    for (int i = 0; i < 5; ++i) {
+        v.push_back(Student({ cur_stud_name }));
+        for (int j = 0; j < 4; ++j) {
+            in >> cur_sub_name >> cur_score;
+            v[i].subs[j].name_of_sub = cur_sub_name;
+            v[i].subs[j].score = cur_score;
+        }
+        in.ignore(10, '\n');
+        std::getline(in, cur_stud_name);
+    }
+}
+
+
+
+std::ostream& operator <<(std::ofstream& out, std::vector<Student>& v)
 {
     out << "Data base:" << std::endl;
-    for (Student i : v) 
+    for (Student i : v)
     {
         out << i.name << " ";
         out << i.average_score << std::endl;
@@ -46,31 +98,21 @@ std::ofstream& operator <<(std::ofstream& out, std::vector<Student>& v)
     return out;
 }
 
-std::ostream& operator <<(std::ostream& out, Student& i)
+
+void print_db_bin(std::vector<Student>& v, std::ofstream& out)
 {
-    out << i.name << " ";
-    out << i.average_score << std::endl;
-    return out;
+    for (Student i : v)
+    {
+        out << i.name << " ";
+        out << i.average_score << std::endl;
+    }
 }
 
 int main()
 {
     std::vector<Student> students;
-    std::string cur_stud_name;
-    std::string cur_sub_name;
-    unsigned short int cur_score;
     std::ifstream in("lab6_input.txt");
-    std::getline(in, cur_stud_name);
-    for (int i = 0; i < 5; ++i) {
-        students.push_back(Student({ cur_stud_name }));
-        for (int j = 0; j < 4; ++j) {
-            in >> cur_sub_name >> cur_score;
-            students[i].subs[j].name_of_sub = cur_sub_name;
-            students[i].subs[j].score = cur_score;
-        }
-        in.ignore(10, '\n');
-        std::getline(in, cur_stud_name);
-    }
+    read_db(in, students);
     in.close();
     
     sort_s(students, 5);
@@ -100,12 +142,7 @@ int main()
     out << students;
     out.close();
     std::ofstream out_bin("lab6_res_bin.bin", std::ios::binary);
-    out_bin << "Data base:" << std::endl;
-    for (Student i : students)
-    {
-        out_bin << i.name << " ";
-        out_bin << i.average_score << std::endl;
-    }
+    print_db_bin(students, out_bin);
     out_bin.close();
     return 0;
 }
