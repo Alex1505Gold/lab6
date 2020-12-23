@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <sstream>
 
 struct Subject
 {
@@ -72,27 +73,38 @@ void read_db_bin(std::istream& in, std::vector<Student>& v, unsigned int n)
     std::string cur_stud_name;
     std::string cur_sub_name;
     unsigned short int cur_score;
+    std::string a;
+    std::string score_str;
+    score_str.resize(1);
     for (int i = 0; i < n; ++i) {
-        std::string a = "";
+        cur_stud_name = "";
+        a.resize(1);
+        in.read(a.data(), 1);
         while (a != "\n")
         {
-            in.read(reinterpret_cast<char*>(&a), 1);
-            a.resize(1);
             cur_stud_name += a;
+            in.read(a.data(), 1);
+            a.resize(1);
         }
         v.push_back(Student({ cur_stud_name }));
         for (int j = 0; j < 4; ++j) {
-            //in >> cur_sub_name >> cur_score;
+            cur_sub_name = "";
+            a.resize(1);
+            in.read(a.data(), 1);
             while (a != " ")
             {
-                in.read(reinterpret_cast<char*>(&a), 1);
-                a.resize(1);
                 cur_sub_name += a;
+                in.read(a.data(), 1);
+                a.resize(1);
             }
-            in.read(reinterpret_cast<char*>(&cur_score), sizeof(cur_score));
+            in.read(score_str.data(), 1);
+            score_str.resize(1);
+            cur_score = static_cast<int>(score_str[0]) - 48;
             v[i].subs[j].name_of_sub = cur_sub_name;
             v[i].subs[j].score = cur_score;
+            if (j != 3) in.read(a.data(), 1); // после записи оценки в файле идет еще один пробел
         }
+        in.read(a.data(), 1); // после записи строки с предметами есть еще один символ перехода \n
     }
 }
 
@@ -112,16 +124,20 @@ std::ostream& operator <<(std::ofstream& out, std::vector<Student>& v)
 
 void print_db_bin(std::vector<Student>& v, std::ofstream& out)
 {
+    std::string db = "Data base:\n";
+    out.write(db.c_str(), db.length());
     for (Student i : v)
     {
         //out << i.name << " ";
         //out << i.average_score << std::endl;
-        out.write(reinterpret_cast<char*>(&i.name), i.name.length());
+        out.write(i.name.c_str(), i.name.length());
         std::string space = " ";
         std::string enter = "\n";
-        out.write(reinterpret_cast<char*>(&space), 1);
-        out.write(reinterpret_cast<char*>(&i.average_score), sizeof(i.average_score));
-        out.write(reinterpret_cast<char*>(&enter), 1);
+        out.write(space.c_str(), 1);
+        std::stringstream s;
+        s << i.average_score;
+        out.write(s.str().c_str(), s.str().length());
+        out.write(enter.c_str(), 1);
     }
 }
 
@@ -131,8 +147,8 @@ int main()
     std::cout << "How much studs do you have\n";
     std::cin >> count_of_studs;
     std::vector<Student> students;
-    std::ifstream in("lab6_input.txt");
-    read_db(in, students, count_of_studs);
+    std::ifstream in("lab6_input_bin.bin", std::ios::binary);
+    read_db_bin(in, students, count_of_studs);
     in.close();
     
     sort_s(students, count_of_studs);
@@ -164,6 +180,25 @@ int main()
     std::ofstream out_bin("lab6_res_bin.bin", std::ios::binary);
     print_db_bin(students, out_bin);
     out_bin.close();
+
+    /*std::ofstream in_bin("lab6_input_bin.bin", std::ios::binary);
+    for (Student i : students)
+    {
+        std::string space = " ";
+        std::string enter = "\n";
+        in_bin.write(i.name.c_str(), i.name.length());
+        in_bin.write(enter.c_str(), 1);
+        for (int j = 0; j < 4; ++j)
+        {
+            in_bin.write(i.subs[j].name_of_sub.c_str(), i.subs[j].name_of_sub.length());
+            in_bin.write(space.c_str(), 1);
+            std::string score_str = " ";
+            score_str[0] = static_cast<char>(i.subs[j].score + 48);
+            in_bin.write(score_str.c_str(), 1);
+            if (j != 3) in_bin.write(space.c_str(), 1);
+        }
+        in_bin.write(enter.c_str(), 1);
+    }*/
     return 0;
 }
 
