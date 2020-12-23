@@ -57,31 +57,42 @@ std::istream& operator >>(std::istream& in, Student& i)
     return in;
 }
 
-void read_db(std::istream& in, std::vector<Student>& v)
+void read_db(std::istream& in, std::vector<Student>& v, unsigned int n)
 {
     Student cur_stud;
-    for (int i = 0; i < 5; ++i)
+    for (int i = 0; i < n; ++i)
     {
         in >> cur_stud;
         v.push_back(cur_stud);
     }
 }
 
-void read_db_bin(std::istream& in, std::vector<Student>& v)
+void read_db_bin(std::istream& in, std::vector<Student>& v, unsigned int n)
 {
     std::string cur_stud_name;
     std::string cur_sub_name;
     unsigned short int cur_score;
-    std::getline(in, cur_stud_name);
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < n; ++i) {
+        std::string a = "";
+        while (a != "\n")
+        {
+            in.read(reinterpret_cast<char*>(&a), 1);
+            a.resize(1);
+            cur_stud_name += a;
+        }
         v.push_back(Student({ cur_stud_name }));
         for (int j = 0; j < 4; ++j) {
-            in >> cur_sub_name >> cur_score;
+            //in >> cur_sub_name >> cur_score;
+            while (a != " ")
+            {
+                in.read(reinterpret_cast<char*>(&a), 1);
+                a.resize(1);
+                cur_sub_name += a;
+            }
+            in.read(reinterpret_cast<char*>(&cur_score), sizeof(cur_score));
             v[i].subs[j].name_of_sub = cur_sub_name;
             v[i].subs[j].score = cur_score;
         }
-        in.ignore(10, '\n');
-        std::getline(in, cur_stud_name);
     }
 }
 
@@ -103,19 +114,28 @@ void print_db_bin(std::vector<Student>& v, std::ofstream& out)
 {
     for (Student i : v)
     {
-        out << i.name << " ";
-        out << i.average_score << std::endl;
+        //out << i.name << " ";
+        //out << i.average_score << std::endl;
+        out.write(reinterpret_cast<char*>(&i.name), i.name.length());
+        std::string space = " ";
+        std::string enter = "\n";
+        out.write(reinterpret_cast<char*>(&space), 1);
+        out.write(reinterpret_cast<char*>(&i.average_score), sizeof(i.average_score));
+        out.write(reinterpret_cast<char*>(&enter), 1);
     }
 }
 
 int main()
 {
+    unsigned int count_of_studs;
+    std::cout << "How much studs do you have\n";
+    std::cin >> count_of_studs;
     std::vector<Student> students;
     std::ifstream in("lab6_input.txt");
-    read_db(in, students);
+    read_db(in, students, count_of_studs);
     in.close();
     
-    sort_s(students, 5);
+    sort_s(students, count_of_studs);
 
     double sum_of_scores = 0.0;
     for (int i = 0; i < 5; ++i) {
