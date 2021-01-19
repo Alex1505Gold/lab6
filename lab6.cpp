@@ -1,5 +1,4 @@
-﻿
-#include <iostream>
+﻿#include <iostream>
 #include <vector>
 #include <string>
 #include <fstream>
@@ -32,7 +31,6 @@ void sort_s(std::vector<Student>& arr, int n)
         for (int j = i + 1; j < n; j++) {
             const char* d1 = arr[i].name.c_str();
             const char* d2 = arr[j].name.c_str();
-            //д1 и д2 нужны, тк фунция не работала с ссылками на строки
             if (strcmp(d1, d2) > 0)
             {
                 tmp = arr[i];
@@ -58,56 +56,42 @@ std::istream& operator >>(std::istream& in, Student& i)
     return in;
 }
 
-void read_db(std::istream& in, std::vector<Student>& v, unsigned int n)
+void read_db(std::istream& in, std::vector<Student>& v)
 {
     Student cur_stud;
-    for (int i = 0; i < n; ++i)
+    while (!in.eof())
     {
         in >> cur_stud;
         v.push_back(cur_stud);
     }
 }
 
-void read_db_bin(std::istream& in, std::vector<Student>& v, unsigned int n)
+void read_db_bin(std::istream& in, std::vector<Student>& v)
 {
-    std::string cur_stud_name;
-    std::string cur_sub_name;
-    unsigned short int cur_score;
-    std::string a;
-    std::string score_str;
-    score_str.resize(1);
-    for (int i = 0; i < n; ++i) {
-        cur_stud_name = "";
-        a.resize(1);
-        in.read(a.data(), 1);
-        while (a != "\n")
+    size_t a;
+    std::string tmp;
+    Student cur_stud;
+    while (!in.eof())
+    {
+        in.read(reinterpret_cast<char*>(&a), sizeof(a));
+        tmp.resize(a);
+        in.read(tmp.data(), a);
+        cur_stud.name = tmp;
+        for (int j = 0; j < 4; j++)
         {
-            cur_stud_name += a;
-            in.read(a.data(), 1);
-            a.resize(1);
+            in.read(reinterpret_cast<char*>(&a), sizeof(a));
+            tmp.resize(a);
+            in.read(tmp.data(), a);
+            cur_stud.subs[j].name_of_sub = tmp;
+            in.read(reinterpret_cast<char*>(&a), sizeof(a));
+            tmp.resize(a);
+            in.read(tmp.data(), a);
+            cur_stud.subs[j].score = static_cast<unsigned short int>(tmp[0] - 48);
         }
-        v.push_back(Student({ cur_stud_name }));
-        for (int j = 0; j < 4; ++j) {
-            cur_sub_name = "";
-            a.resize(1);
-            in.read(a.data(), 1);
-            while (a != " ")
-            {
-                cur_sub_name += a;
-                in.read(a.data(), 1);
-                a.resize(1);
-            }
-            in.read(score_str.data(), 1);
-            score_str.resize(1);
-            cur_score = static_cast<int>(score_str[0]) - 48;
-            v[i].subs[j].name_of_sub = cur_sub_name;
-            v[i].subs[j].score = cur_score;
-            if (j != 3) in.read(a.data(), 1); // после записи оценки в файле идет еще один пробел
-        }
-        in.read(a.data(), 1); // после записи строки с предметами есть еще один символ перехода \n
+        v.push_back(cur_stud);
     }
+    v.pop_back();
 }
-
 
 
 std::ostream& operator <<(std::ofstream& out, std::vector<Student>& v)
@@ -124,37 +108,36 @@ std::ostream& operator <<(std::ofstream& out, std::vector<Student>& v)
 
 void print_db_bin(std::vector<Student>& v, std::ofstream& out)
 {
-    std::string db = "Data base:\n";
-    out.write(db.c_str(), db.length());
+    size_t a;
     for (Student i : v)
     {
-        //out << i.name << " ";
-        //out << i.average_score << std::endl;
-        out.write(i.name.c_str(), i.name.length());
-        std::string space = " ";
-        std::string enter = "\n";
-        out.write(space.c_str(), 1);
-        std::stringstream s;
-        s << i.average_score;
-        out.write(s.str().c_str(), s.str().length());
-        out.write(enter.c_str(), 1);
+        a = i.name.size();
+        out.write(reinterpret_cast<const char*>(&a), sizeof(a));
+        out.write(i.name.c_str(), i.name.size());
+        for (int j = 0; j < 4; ++j)
+        {
+            a = i.subs[j].name_of_sub.size();
+            out.write(reinterpret_cast<const char*>(&a), sizeof(a));
+            out.write(i.subs[j].name_of_sub.c_str(), i.subs[j].name_of_sub.size());
+            std::stringstream s;
+            s << i.subs[j].score;
+            a = s.str().size();
+            out.write(reinterpret_cast<const char*>(&a), sizeof(a));
+            out.write(s.str().c_str(), s.str().size());
+        }
     }
 }
 
 int main()
 {
-    unsigned int count_of_studs;
-    std::cout << "How much studs do you have\n";
-    std::cin >> count_of_studs;
     std::vector<Student> students;
-    std::ifstream in("lab6_input_bin.bin", std::ios::binary);
-    read_db_bin(in, students, count_of_studs);
+    std::ifstream in("lab6_in_bin.bin", std::ios::binary);
+    read_db_bin(in, students);
     in.close();
+    sort_s(students, students.size());
     
-    sort_s(students, count_of_studs);
-
     double sum_of_scores = 0.0;
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < students.size(); ++i) {
         for (int j = 0; j < 4; ++j) {
             sum_of_scores += students[i].subs[j].score * 1.0;
         }
@@ -166,8 +149,7 @@ int main()
     for (Student i : students) {
         if (i.average_score >= 4.0) count_of_good_studs++;
     }
-
-    std::ofstream out("lab6_result.txt");
+    
     std::cout << "Count of students with high average score is " << count_of_good_studs << std::endl;
     std::cout << "The list of theese students:" << std::endl;
     for (Student i : students) {
@@ -175,30 +157,13 @@ int main()
             std::cout << i;
         }
     }
+
+    std::ofstream out("lab6_result.txt");
     out << students;
     out.close();
     std::ofstream out_bin("lab6_res_bin.bin", std::ios::binary);
     print_db_bin(students, out_bin);
     out_bin.close();
-
-    /*std::ofstream in_bin("lab6_input_bin.bin", std::ios::binary);
-    for (Student i : students)
-    {
-        std::string space = " ";
-        std::string enter = "\n";
-        in_bin.write(i.name.c_str(), i.name.length());
-        in_bin.write(enter.c_str(), 1);
-        for (int j = 0; j < 4; ++j)
-        {
-            in_bin.write(i.subs[j].name_of_sub.c_str(), i.subs[j].name_of_sub.length());
-            in_bin.write(space.c_str(), 1);
-            std::string score_str = " ";
-            score_str[0] = static_cast<char>(i.subs[j].score + 48);
-            in_bin.write(score_str.c_str(), 1);
-            if (j != 3) in_bin.write(space.c_str(), 1);
-        }
-        in_bin.write(enter.c_str(), 1);
-    }*/
     return 0;
 }
 
